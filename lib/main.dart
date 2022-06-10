@@ -1,11 +1,25 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-final counterRiverpod = StateProvider((ref) => 0);
+class CounterEvent {}
+
+class IncrementEvent extends CounterEvent {}
+
+class CounterBloc extends Bloc<CounterEvent, int> {
+  CounterBloc() : super(0) {
+    on<CounterEvent>((event, emit) {
+      if (event is IncrementEvent) {
+        emit(state + 1);
+      }
+    });
+  }
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -32,7 +46,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends ConsumerStatefulWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -47,12 +61,12 @@ class MyHomePage extends ConsumerStatefulWidget {
   final String title;
 
   @override
-  ConsumerState<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends ConsumerState<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> {
   void _incrementCounter() {
-    ref.read(counterRiverpod.notifier).state = ref.read(counterRiverpod) + 1;
+    context.read<CounterBloc>().add(IncrementEvent());
   }
 
   @override
@@ -92,10 +106,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            Consumer(
-              builder: (context, ref, child) {
+            BlocBuilder<CounterBloc, int>(
+              builder: (context, state) {
                 return Text(
-                  '${ref.watch(counterRiverpod)}',
+                  '$state',
                   style: Theme.of(context).textTheme.headline4,
                 );
               },
